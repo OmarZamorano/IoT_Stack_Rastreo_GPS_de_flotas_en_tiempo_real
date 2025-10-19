@@ -46,12 +46,140 @@ Como Grafana no puede acceder directamente a los datos almacenados en InfluxDB, 
 
 ## Raspberry Pi
 
-## Mosquitto
+### Instalación de Nodejs, npm y libreria mqtt
 
-## Telegraf
+https://asciinema.org/a/749877
 
-## InfluxDB
+### Código que simula el GPS del Trailer 1
 
-## Grafana
+```
+//usamos la libreria mqtt
+const mqtt = require("mqtt");
+
+//ip del broker (Mosquitto)
+const broker = "mqtt://98.88.33.8:1883";
+
+//topic a publicar
+const topic = "iot/gps/trailer1";
+
+//creamos el cliente
+const client = mqtt.connect(broker, {
+    clientId: "Raspberry_Trailer1",
+});
+
+//conectarse al broker
+client.on("connect", () => {
+    console.log("Conectado a mosquitto");
+
+    //ciclo cada 3 segundos 
+    setInterval(() => {
+        const latitud = Math.round((32.52 + (Math.random() - 0.5) * 0.1) * 100) / 100;
+        const longitud = Math.round((-117.03 + (Math.random() - 0.5) * 0.1) * 100) / 100;
+        const altitud = Math.round((20 + Math.random() * 10) * 100) / 100;  
+
+        const payload = JSON.stringify({
+            id: "Raspberry_Trailer1",
+            latitud: latitud,
+            longitud: longitud,
+            altitud: altitud
+        });
+
+        client.publish(topic, payload);
+        console.log("Datos enviados", payload);
+    }, 3000);
+});
+
+//por si hay un error
+client.on("error", (err) => {
+    console.log("Error de conexion", err.message);
+});
+```
+
+### Código que simula el GPS del Trailer 2
+
+```
+//usamos la libreria mqtt
+const mqtt = require("mqtt");
+
+//ip del broker (Mosquitto)
+const broker = "mqtt://98.88.33.8:1883";
+
+//topic a publicar
+const topic = "iot/gps/trailer2";
+
+//creamos el cliente
+const client = mqtt.connect(broker, {
+    clientId: "Raspberry_Trailer2",
+});
+
+//conectarse al broker
+client.on("connect", () => {
+    console.log("Conectado a mosquitto");
+
+    //ciclo cada 3 segundos 
+    setInterval(() => {
+        const latitud = Math.round((19.43 + (Math.random() - 0.5) * 0.1) * 100) / 100;
+        const longitud = Math.round((-99.13 + (Math.random() - 0.5) * 0.1) * 100) / 100;
+        const altitud = Math.round((2240 + Math.random() * 10) * 100) / 100; 
+
+        const payload = JSON.stringify({
+            id: "Raspberry_Trailer2",
+            latitud: latitud,
+            longitud: longitud,
+            altitud: altitud
+        });
+
+        client.publish(topic, payload);
+        console.log("Datos enviados", payload);
+    }, 3000);
+});
+
+//por si hay un error
+client.on("error", (err) => {
+    console.log("Error de conexion", err.message);
+});
+```
+
+## Codigo de configuración de Telegraf
+
+```
+#Proyecto de los GPS Trailer 1
+[[inputs.mqtt_consumer]]
+  ## Dirección de tu broker MQTT
+  servers = ["tcp://172.31.22.14:1883"]
+  topics = ["iot/gps/trailer1"]
+  qos = 0
+  client_id = "telegraf_mqtt_trailer1"
+  data_format = "json"
+  json_string_fields = ["id"]
+  tag_keys = ["id"]
+  name_override = "gps_trailer1"
+
+[[outputs.influxdb_v2]]
+  urls = ["http://172.31.22.14:8086"]
+  token = "R4qQGjqFYpQwLDVTJzkWcvabcCetCRQWElO1t74tGFpbLxJDi3_BXlf2GX3xDbnK_MqOe_UjQwe-L3pppqL_jw=="
+  organization = "iot-lab"
+  bucket = "trailer1"
+
+#Proyecto de los GPS Trailer 2
+[[inputs.mqtt_consumer]]
+  ## Dirección de tu broker MQTT
+  servers = ["tcp://172.31.22.14:1883"]
+  topics = ["iot/gps/trailer2"]
+  qos = 0
+  client_id = "telegraf_mqtt_trailer2"
+  data_format = "json"
+  json_string_fields = ["id"]
+  tag_keys = ["id"]
+  name_override = "gps_trailer2"
+
+[[outputs.influxdb_v2]]
+  urls = ["http://172.31.22.14:8086"]
+  token = "R4qQGjqFYpQwLDVTJzkWcvabcCetCRQWElO1t74tGFpbLxJDi3_BXlf2GX3xDbnK_MqOe_UjQwe-L3pppqL_jw=="
+  organization = "iot-lab"
+  bucket = "trailer2"
+```
 
 ## Video final del IoT Stack funcionando correctamente
+
+https://www.loom.com/share/69c4d38268e3410886763f5c65a7459f?sid=c21538f8-1cfe-410f-9e71-94774972f56e
