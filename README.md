@@ -29,6 +29,10 @@ Cada gráfico está asociado a un vehículo e incluye las variables latitud, lon
 ### ***5. Procesamiento de datos con Telegraf:***
 Como Grafana no puede acceder directamente a los datos almacenados en InfluxDB, se usará el agente Telegraf, que actúa como agente de recolección, donde este se suscribe a los tópicos MQTT de Mosquitto y estrae las métricas en tiempo real para pasarlas a los buckets correspondientes en InfluxDB.
 
+## Diagrama de arquitectura
+
+![Diagrama de arquitectura](https://raw.githubusercontent.com/OmarZamorano/Omar-Zamorano-Garcia-Iot-Stack/refs/heads/main/imagenes/imgGPS/ArquiMermahidHorizontal.PNG)
+
 ---
 
 ## Tecnologías usadas
